@@ -17,8 +17,6 @@ pub struct TimeResponse {
     pub country: String,
     #[schemars(description = "Local time")]
     pub local_time: String,
-    #[schemars(description = "Timezone")]
-    pub timezone: String,
     #[schemars(description = "Date")]
     pub date: String,
 }

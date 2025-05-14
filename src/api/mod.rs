@@ -1,3 +1,5 @@
+use std::env;
+
 use rmcp::{model::*, service::RequestContext, tool, Error as McpError, RoleServer, ServerHandler};
 
 use crate::models::{time::TimeRequest, weather::WeatherRequest};
@@ -19,9 +21,32 @@ impl MyServer {
         &self,
         #[tool(aggr)]
         #[schemars(description = "Request")]
-        WeatherRequest { city, country }: WeatherRequest,
+        WeatherRequest {
+            city,
+            country,
+            unit,
+        }: WeatherRequest,
     ) -> Result<CallToolResult, McpError> {
-        match weather::get_weather(WeatherRequest { city, country }).await {
+        let weather_api_key = match env::var("WEATHER_API_KEY") {
+            Ok(k) => k,
+            Err(_) => {
+                return Err(McpError::internal_error(
+                    "WEATHER_API_KEY environment variable not set",
+                    None,
+                ))
+            }
+        };
+
+        match weather::get_weather(
+            &weather_api_key,
+            WeatherRequest {
+                city,
+                country,
+                unit,
+            },
+        )
+        .await
+        {
             Ok(response) => Ok(CallToolResult::success(vec![Content::json(response)?])),
             Err(e) => Err(McpError::internal_error(e.to_string(), None)),
         }
@@ -34,7 +59,17 @@ impl MyServer {
         #[schemars(description = "Request")]
         TimeRequest { city, country }: TimeRequest,
     ) -> Result<CallToolResult, McpError> {
-        match time::get_local_time(TimeRequest { city, country }).await {
+        let geo_location_api_key = match env::var("IP_GEOLOCATION_API_KEY") {
+            Ok(k) => k,
+            Err(_) => {
+                return Err(McpError::internal_error(
+                    "IP_GEOLOCATION_API_KEY environment variable not set",
+                    None,
+                ))
+            }
+        };
+
+        match time::get_local_time(&geo_location_api_key, TimeRequest { city, country }).await {
             Ok(response) => Ok(CallToolResult::success(vec![Content::json(response)?])),
             Err(e) => Err(McpError::internal_error(e.to_string(), None)),
         }

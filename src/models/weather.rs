@@ -1,22 +1,24 @@
 use rmcp::schemars;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize, Clone, Debug, schemars::JsonSchema)]
+pub enum TemperatureUnit {
+    C,
+    F,
+}
+
+fn default_temperature_unit() -> TemperatureUnit {
+    TemperatureUnit::C
+}
+
 #[derive(Deserialize, Debug, schemars::JsonSchema)]
 pub struct WeatherRequest {
     #[schemars(description = "City name")]
     pub city: String,
     #[schemars(description = "Country name")]
     pub country: String,
-}
-
-#[derive(Serialize, Debug, Clone, schemars::JsonSchema)]
-pub struct WeatherForecast {
-    #[schemars(description = "Day of the week")]
-    pub day: String,
-    #[schemars(description = "Temperature")]
-    pub temperature: f32,
-    #[schemars(description = "Conditions")]
-    pub conditions: String,
+    #[schemars(description = "Temperature unit", default = "default_temperature_unit")]
+    pub unit: TemperatureUnit,
 }
 
 #[derive(Serialize, Debug, Clone, schemars::JsonSchema)]
@@ -25,14 +27,12 @@ pub struct WeatherResponse {
     pub city: String,
     #[schemars(description = "Country name")]
     pub country: String,
+    #[schemars(description = "Temperature unit")]
+    pub unit: TemperatureUnit,
     #[schemars(description = "Temperature")]
     pub temperature: f32,
     #[schemars(description = "Conditions")]
     pub conditions: String,
     #[schemars(description = "Humidity")]
-    pub humidity: u8,
-    #[schemars(description = "Wind speed")]
-    pub wind_speed: u8,
-    #[schemars(description = "Forecast")]
-    pub forecast: Vec<WeatherForecast>,
+    pub humidity: f32,
 }

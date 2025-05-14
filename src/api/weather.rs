@@ -1,36 +1,43 @@
-use crate::models::weather::{WeatherForecast, WeatherRequest, WeatherResponse};
+use tracing::{debug, error, info};
 
-pub async fn get_weather(weather_request: WeatherRequest) -> anyhow::Result<WeatherResponse> {
+use crate::api::weather::response::WeatherResponse as WeatherApiResponse;
+use crate::models::weather::{TemperatureUnit, WeatherRequest, WeatherResponse};
+
+mod response;
+
+const WEATHER_ENDPOINT: &str = "https://api.weatherapi.com/v1/current.json";
+
+pub async fn get_weather(
+    api_key: &str,
+    weather_request: WeatherRequest,
+) -> anyhow::Result<WeatherResponse> {
     // Validate request parameters
     if weather_request.city.is_empty() || weather_request.country.is_empty() {
         return Err(anyhow::anyhow!("City and country cannot be empty"));
     }
 
-    // Return mock weather data
-    Ok(WeatherResponse {
-        city: weather_request.city,
-        country: weather_request.country,
-        temperature: 22.5,
-        conditions: "Sunny".to_string(),
-        humidity: 45,
-        wind_speed: 15,
-        forecast: [
-            WeatherForecast {
-                day: "Today".to_string(),
-                temperature: 22.5,
-                conditions: "Sunny".to_string(),
+    info!("Fetching weather data for location: {:?}", weather_request);
+    let location = format!("{},{}", weather_request.city, weather_request.country);
+    let url = format!("{}?key={}&q={}", WEATHER_ENDPOINT, api_key, location);
+    let client = reqwest::Client::new();
+    let response = client.get(&url).send().await?;
+
+    if response.status().is_success() {
+        let weather_response: WeatherApiResponse = response.json().await?;
+        debug!("Weather data fetched successfully: {:?}", weather_response);
+        Ok(WeatherResponse {
+            city: weather_request.city,
+            country: weather_request.country,
+            unit: weather_request.unit.clone(),
+            temperature: match weather_request.unit {
+                TemperatureUnit::C => weather_response.current.temp_c as f32,
+                TemperatureUnit::F => weather_response.current.temp_f as f32,
             },
-            WeatherForecast {
-                day: "Tomorrow".to_string(),
-                temperature: 20.0,
-                conditions: "Partly Cloudy".to_string(),
-            },
-            WeatherForecast {
-                day: "Day after tomorrow".to_string(),
-                temperature: 18.0,
-                conditions: "Light Rain".to_string(),
-            },
-        ]
-        .to_vec(),
-    })
+            conditions: weather_response.current.condition.text,
+            humidity: weather_response.current.humidity,
+        })
+    } else {
+        error!("Failed to fetch weather data: {}", response.status());
+        Err(anyhow::anyhow!("Failed to fetch weather data"))
+    }
 }
