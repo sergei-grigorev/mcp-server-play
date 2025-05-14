@@ -40,6 +40,21 @@ The primary goal of this project is to:
 
 - Rust (latest stable version)
 - Cargo package manager
+- [just](https://github.com/casey/just) command runner
+  - Install with Homebrew: `brew install just`
+  - Install with Cargo: `cargo install just`
+- API keys for:
+  - [WeatherAPI](https://www.weatherapi.com/) for weather data
+  - [IP Geolocation API](https://ipgeolocation.io/) for time data
+
+## Environment Setup
+
+Create a `.env` file in the project root with the following variables:
+
+```env
+WEATHER_API_KEY=your_weather_api_key
+IP_GEOLOCATION_API_KEY=your_geolocation_api_key
+```
 
 ## Installation
 
@@ -55,6 +70,19 @@ The primary goal of this project is to:
    cargo build
    ```
 
+## Development Commands
+
+The project uses [just](https://github.com/casey/just) as a command runner. Available commands:
+
+```bash
+just                # List available commands
+just build          # Build release artifact
+just check          # Run checks (clippy, fmt, etc.)
+just clean          # Clean build artifacts
+just format         # Format code using rustfmt
+just test           # Run tests
+```
+
 ## Running the Server
 
 Run the server using Cargo:
@@ -66,10 +94,16 @@ cargo run
 ## Project Structure
 
 - `src/main.rs`: Entry point and server initialization
-- `src/api/mod.rs`: Main server implementation
-- `src/api/weather.rs`: Weather data retrieval logic
-- `src/api/time.rs`: Local time retrieval logic
-- `src/models/`: Data models for requests
+- `src/api/`
+  - `mod.rs`: Main server implementation
+  - `weather.rs`: Weather data retrieval logic
+  - `weather/response.rs`: Weather API response models
+  - `time.rs`: Time data retrieval logic
+  - `time/response.rs`: Time API response models
+- `src/models/`
+  - `mod.rs`: Models module definitions
+  - `weather.rs`: Weather request/response models
+  - `time.rs`: Time request/response models
 
 ## Tools and Endpoints
 
@@ -79,6 +113,9 @@ cargo run
 - **Parameters**:
   - `city`: Name of the city
   - `country`: Country code
+  - `unit`: Temperature unit (optional)
+    - Values: `C` (Celsius) or `F` (Fahrenheit)
+    - Default: `C`
 
 ### Local Time
 
