@@ -38,3 +38,24 @@ pub async fn get_local_time(
         Err(anyhow::anyhow!("Failed to fetch time data"))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn empty_city_or_country_not_allowed() {
+        let api_key = "your_api_key";
+        let mut request = TimeRequest {
+            city: "New York".to_string(),
+            country: "United States".to_string(),
+        };
+
+        request.city = "".to_string();
+        assert!(get_local_time(api_key, request.clone()).await.is_err());
+
+        request.city = "New York".to_string();
+        request.country = "".to_string();
+        assert!(get_local_time(api_key, request).await.is_err());
+    }
+}

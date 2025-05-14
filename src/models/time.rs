@@ -1,7 +1,7 @@
 use rmcp::schemars;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Debug, schemars::JsonSchema)]
+#[derive(Clone, Deserialize, Debug, schemars::JsonSchema)]
 pub struct TimeRequest {
     #[schemars(description = "City name")]
     pub city: String,

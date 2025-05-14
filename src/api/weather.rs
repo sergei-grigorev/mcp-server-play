@@ -41,3 +41,31 @@ pub async fn get_weather(
         Err(anyhow::anyhow!("Failed to fetch weather data"))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn empty_location_parameters_are_not_allowed() {
+        let api_key = "123";
+
+        let weather_request_empty_city = WeatherRequest {
+            city: "".to_string(),
+            country: "US".to_string(),
+            unit: TemperatureUnit::C,
+        };
+
+        let result1 = get_weather(api_key, weather_request_empty_city).await;
+        assert!(result1.is_err());
+
+        let weather_request_empty_country = WeatherRequest {
+            city: "New York".to_string(),
+            country: "".to_string(),
+            unit: TemperatureUnit::C,
+        };
+
+        let result2 = get_weather(api_key, weather_request_empty_country).await;
+        assert!(result2.is_err());
+    }
+}
