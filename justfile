@@ -25,3 +25,7 @@ check:
 # Run tests
 test:
     cargo test --all-features
+
+# Run the server in development mode
+serve:
+    cargo run

@@ -61,8 +61,8 @@ IP_GEOLOCATION_API_KEY=your_geolocation_api_key
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/mcp-server.git
-   cd mcp-server
+   git clone https://github.com/sergei-grigorev/mcp-server-play.git
+   cd mcp-server-play
    ```
 
 2. Build the project:
@@ -80,15 +80,16 @@ just build          # Build release artifact
 just check          # Run checks (clippy, fmt, etc.)
 just clean          # Clean build artifacts
 just format         # Format code using rustfmt
+just serve          # Run the server in development mode
 just test           # Run tests
 ```
 
 ## Running the Server
 
-Run the server using Cargo:
+Run the server using just:
 
 ```bash
-cargo run
+just serve
 ```
 
 ## Project Structure
