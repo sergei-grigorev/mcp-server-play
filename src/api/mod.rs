@@ -44,6 +44,7 @@ impl MyServer {
                 country,
                 unit,
             },
+            None,
         )
         .await
         {
@@ -69,7 +70,8 @@ impl MyServer {
             }
         };
 
-        match time::get_local_time(&geo_location_api_key, TimeRequest { city, country }).await {
+        match time::get_local_time(&geo_location_api_key, TimeRequest { city, country }, None).await
+        {
             Ok(response) => Ok(CallToolResult::success(vec![Content::json(response)?])),
             Err(e) => Err(McpError::internal_error(e.to_string(), None)),
         }

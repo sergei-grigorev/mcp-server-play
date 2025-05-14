@@ -31,3 +31,6 @@ uuid = { version = "1.6", features = ["v4", "serde"] }
 serde_urlencoded = "0.7"
 askama = { version = "0.14" }
 dotenv = "0.15"
+
+[dev-dependencies]
+mockito = "1.7.0"

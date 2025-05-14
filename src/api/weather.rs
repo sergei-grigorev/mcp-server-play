@@ -5,11 +5,22 @@ use crate::models::weather::{TemperatureUnit, WeatherRequest, WeatherResponse};
 
 mod response;
 
-const WEATHER_ENDPOINT: &str = "https://api.weatherapi.com/v1/current.json";
+// Default weather API endpoint
+const DEFAULT_WEATHER_ENDPOINT: &str = "https://api.weatherapi.com/v1/current.json";
 
+/// Fetch weather data for a given location
+///
+/// # Arguments
+/// * `api_key` - API key for the weather service
+/// * `weather_request` - Request containing location and unit preference
+/// * `endpoint` - Optional custom endpoint URL (useful for testing)
+///
+/// # Returns
+/// Weather response with temperature, conditions, and humidity
 pub async fn get_weather(
     api_key: &str,
     weather_request: WeatherRequest,
+    endpoint: Option<&str>,
 ) -> anyhow::Result<WeatherResponse> {
     // Validate request parameters
     if weather_request.city.is_empty() || weather_request.country.is_empty() {
@@ -18,9 +29,12 @@ pub async fn get_weather(
 
     info!("Fetching weather data for location: {:?}", weather_request);
     let location = format!("{},{}", weather_request.city, weather_request.country);
-    let url = format!("{}?key={}&q={}", WEATHER_ENDPOINT, api_key, location);
+    let weather_endpoint = endpoint.unwrap_or(DEFAULT_WEATHER_ENDPOINT);
+    let url = format!("{}?key={}&q={}", weather_endpoint, api_key, location);
+    debug!("Request URL: {}", url);
     let client = reqwest::Client::new();
     let response = client.get(&url).send().await?;
+    debug!("Response status: {}", response.status());
 
     if response.status().is_success() {
         let weather_response: WeatherApiResponse = response.json().await?;
@@ -45,6 +59,7 @@ pub async fn get_weather(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mockito::Server;
 
     #[tokio::test]
     async fn empty_location_parameters_are_not_allowed() {
@@ -56,7 +71,7 @@ mod tests {
             unit: TemperatureUnit::C,
         };
 
-        let result1 = get_weather(api_key, weather_request_empty_city).await;
+        let result1 = get_weather(api_key, weather_request_empty_city, None).await;
         assert!(result1.is_err());
 
         let weather_request_empty_country = WeatherRequest {
@@ -65,7 +80,100 @@ mod tests {
             unit: TemperatureUnit::C,
         };
 
-        let result2 = get_weather(api_key, weather_request_empty_country).await;
+        let result2 = get_weather(api_key, weather_request_empty_country, None).await;
         assert!(result2.is_err());
+    }
+
+    #[tokio::test]
+    async fn successful_weather_request() {
+        let mut server = Server::new_async().await;
+
+        let _m = server
+            .mock("GET", "/")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("key".into(), "test_api_key".into()),
+                mockito::Matcher::UrlEncoded("q".into(), "London,UK".into()),
+            ]))
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{
+                "location": {
+                    "name": "London",
+                    "region": "City of London, Greater London",
+                    "country": "United Kingdom"
+                },
+                "current": {
+                    "temp_c": 15.0,
+                    "temp_f": 59.0,
+                    "condition": {
+                        "text": "Partly cloudy",
+                        "icon": "//cdn.weatherapi.com/weather/64x64/day/116.png",
+                        "code": 1003
+                    },
+                    "humidity": 72
+                }
+            }"#,
+            )
+            .create_async()
+            .await;
+
+        let mock_endpoint = server.url();
+
+        let weather_request = WeatherRequest {
+            city: "London".to_string(),
+            country: "UK".to_string(),
+            unit: TemperatureUnit::C,
+        };
+
+        let result = get_weather("test_api_key", weather_request, Some(&mock_endpoint)).await;
+        println!("Response status: {:?}", result);
+        if let Err(ref e) = result {
+            println!("Error: {}", e);
+        }
+        assert!(result.is_ok());
+        let weather = result.unwrap();
+        assert_eq!(weather.city, "London");
+        assert_eq!(weather.country, "UK");
+        assert_eq!(weather.temperature, 15.0);
+        assert_eq!(weather.conditions, "Partly cloudy");
+        assert_eq!(weather.humidity, 72f32);
+    }
+
+    #[tokio::test]
+    async fn failed_weather_request() {
+        let mut server = Server::new_async().await;
+
+        let _m = server
+            .mock("GET", "/")
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("key".into(), "test_api_key".into()),
+                mockito::Matcher::UrlEncoded("q".into(), "NonExistent,NoCountry".into()),
+            ]))
+            .with_status(400)
+            .with_header("content-type", "application/json")
+            .with_body(
+                r#"{
+                "error": {
+                    "code": 1006,
+                    "message": "No matching location found."
+                }
+            }"#,
+            )
+            .create_async()
+            .await;
+
+        let mock_endpoint = server.url();
+
+        let weather_request = WeatherRequest {
+            city: "NonExistent".to_string(),
+            country: "NoCountry".to_string(),
+            unit: TemperatureUnit::C,
+        };
+
+        let result = get_weather("test_api_key", weather_request, Some(&mock_endpoint)).await;
+        assert!(result.is_err());
+        let error = result.unwrap_err().to_string();
+        assert!(error.contains("Failed to fetch weather data"));
     }
 }
