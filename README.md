@@ -21,6 +21,9 @@ RMCP is a modern Rust SDK for the Model Context Protocol, offering:
 - Flexible and extensible tool implementation
 - Improved data type handling compared to official SDKs
 - Support for various transport mechanisms
+  - Server-Sent Events (SSE) for real-time communication
+  - Lightweight and efficient one-way server-to-client data streaming
+  - Built-in reconnection support and event tracking
 
 ## Purpose
 
