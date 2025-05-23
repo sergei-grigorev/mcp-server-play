@@ -50,14 +50,36 @@ The primary goal of this project is to:
   - [WeatherAPI](https://www.weatherapi.com/) for weather data
   - [IP Geolocation API](https://ipgeolocation.io/) for time data
 
+## Configuration
+
+The server can be configured using the following environment variables:
+
+- `BIND_ADDRESS`: The IP address to bind the server to (default: `0.0.0.0`)
+- `PORT`: The port number to listen on (default: `8000`)
+
+Example usage:
+```bash
+# Bind to localhost on port 3000
+BIND_ADDRESS=127.0.0.1 PORT=3000 cargo run
+
+# Use default bind address but change port
+PORT=8080 cargo run
+```
+
 ## Environment Setup
 
-Create a `.env` file in the project root with the following variables:
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
-```env
-WEATHER_API_KEY=your_weather_api_key
-IP_GEOLOCATION_API_KEY=your_geolocation_api_key
-```
+2. Edit the `.env` file and replace the placeholder values with your actual API keys:
+   - `WEATHER_API_KEY`: Get it from [WeatherAPI](https://www.weatherapi.com/)
+   - `IP_GEOLOCATION_API_KEY`: Get it from [IP Geolocation API](https://ipgeolocation.io/)
+
+3. Optionally, you can also configure:
+   - `BIND_ADDRESS`: The IP address to bind the server to (default: `0.0.0.0`)
+   - `PORT`: The port number to listen on (default: `8000`)
 
 ## Installation
 
