@@ -1,7 +1,7 @@
 use tracing::{debug, error, info};
 
 use crate::api::weather::response::WeatherResponse as WeatherApiResponse;
-use crate::models::weather::{TemperatureUnit, WeatherRequest, WeatherResponse};
+use crate::models::weather::{WeatherRequest, WeatherResponse};
 
 mod response;
 
@@ -43,9 +43,9 @@ pub async fn get_weather(
             city: weather_request.city,
             country: weather_request.country,
             unit: weather_request.unit.clone(),
-            temperature: match weather_request.unit {
-                TemperatureUnit::C => weather_response.current.temp_c as f32,
-                TemperatureUnit::F => weather_response.current.temp_f as f32,
+            temperature: match weather_request.unit.as_str() {
+                "F" => weather_response.current.temp_f as f32,
+                _ => weather_response.current.temp_c as f32,
             },
             conditions: weather_response.current.condition.text,
             humidity: weather_response.current.humidity,
@@ -68,7 +68,7 @@ mod tests {
         let weather_request_empty_city = WeatherRequest {
             city: "".to_string(),
             country: "US".to_string(),
-            unit: TemperatureUnit::C,
+            unit: "C".to_string(),
         };
 
         let result1 = get_weather(api_key, weather_request_empty_city, None).await;
@@ -77,7 +77,7 @@ mod tests {
         let weather_request_empty_country = WeatherRequest {
             city: "New York".to_string(),
             country: "".to_string(),
-            unit: TemperatureUnit::C,
+            unit: "C".to_string(),
         };
 
         let result2 = get_weather(api_key, weather_request_empty_country, None).await;
@@ -123,7 +123,7 @@ mod tests {
         let weather_request = WeatherRequest {
             city: "London".to_string(),
             country: "UK".to_string(),
-            unit: TemperatureUnit::C,
+            unit: "C".to_string(),
         };
 
         let result = get_weather("test_api_key", weather_request, Some(&mock_endpoint)).await;
@@ -168,7 +168,7 @@ mod tests {
         let weather_request = WeatherRequest {
             city: "NonExistent".to_string(),
             country: "NoCountry".to_string(),
-            unit: TemperatureUnit::C,
+            unit: "C".to_string(),
         };
 
         let result = get_weather("test_api_key", weather_request, Some(&mock_endpoint)).await;

@@ -4,7 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rmcp = { version = "^0.1.5", features = ["server", "transport-io"] }
+rmcp = { version = "^0.1.5", features = [
+    "server",
+    "transport-io",
+    "transport-sse",
+    "transport-sse-server"
+] }
 tokio = { version = "^1", features = [
     "macros",
     "rt",
@@ -27,7 +32,7 @@ axum = { version = "0.8", features = ["macros"] }
 schemars = { version = "0.8", optional = true }
 reqwest = { version = "0.12", features = ["json"] }
 chrono = "0.4"
-uuid = { version = "1.6", features = ["v4", "serde"] }
+uuid = { version = "1.17.0", features = ["v4", "serde"] }
 serde_urlencoded = "0.7"
 askama = { version = "0.14" }
 dotenv = "0.15"

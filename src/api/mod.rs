@@ -16,7 +16,7 @@ impl MyServer {
         Self
     }
 
-    #[tool(description = "Get weather data")]
+    #[tool(description = "Get current weather")]
     pub async fn get_weather(
         &self,
         #[tool(aggr)]

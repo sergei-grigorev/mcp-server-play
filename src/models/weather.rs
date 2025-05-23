@@ -1,14 +1,8 @@
 use rmcp::schemars;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, schemars::JsonSchema)]
-pub enum TemperatureUnit {
-    C,
-    F,
-}
-
-fn default_temperature_unit() -> TemperatureUnit {
-    TemperatureUnit::C
+fn default_temperature_unit() -> String {
+    "C".to_string()
 }
 
 #[derive(Deserialize, Debug, schemars::JsonSchema)]
@@ -17,8 +11,8 @@ pub struct WeatherRequest {
     pub city: String,
     #[schemars(description = "Country name")]
     pub country: String,
-    #[schemars(description = "Temperature unit", default = "default_temperature_unit")]
-    pub unit: TemperatureUnit,
+    #[schemars(description = "Temperature unit (C or F)", default = "default_temperature_unit")]
+    pub unit: String,
 }
 
 #[derive(Serialize, Debug, Clone, schemars::JsonSchema)]
@@ -27,8 +21,8 @@ pub struct WeatherResponse {
     pub city: String,
     #[schemars(description = "Country name")]
     pub country: String,
-    #[schemars(description = "Temperature unit")]
-    pub unit: TemperatureUnit,
+    #[schemars(description = "Temperature unit (C or F)")]
+    pub unit: String,
     #[schemars(description = "Temperature")]
     pub temperature: f32,
     #[schemars(description = "Conditions")]
